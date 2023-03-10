@@ -1,5 +1,9 @@
 import axios from 'axios'
 
+/** 
+ * TODO: Refactor this module to using async and await later today 
+*/
+
 const baseUrl = 'http://localhost:3001/persons'
 
 const getAll = () => {
