@@ -1,4 +1,5 @@
 const express = require('express')
+const morgan = require('morgan')
 
 const app = express()
 
@@ -27,6 +28,17 @@ let persons = [
 ]
 
 app.use(express.json())
+// app.use(morgan('tiny'))
+
+
+morgan.token('post_body', function (request, response) {
+  if (request.method === 'POST') {
+    return JSON.stringify(request.body)
+  }
+  return null;
+})
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :post_body'))
 
 app.get('/api/persons', (request, response) => {
   response.json(persons)
@@ -34,7 +46,6 @@ app.get('/api/persons', (request, response) => {
 
 app.get('/info', (request, response) => {
   const ans = `Phonebook has info for ${persons.length} people<br/>${new Date().toString()}`
-  console.log(ans)
   response.send(ans)
 })
 
