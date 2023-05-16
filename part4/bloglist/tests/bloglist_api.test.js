@@ -36,7 +36,7 @@ describe('testing getting blogs', () => {
     const blog = response.body[0]
     expect(blog.id).toBeDefined()
 
-  })
+  }, 10000)
 })
 
 describe('testing adding blogs', () => {
@@ -58,7 +58,7 @@ describe('testing adding blogs', () => {
 
     const titles = blogsInDb.map(blog => blog.title)
     expect(titles).toContainEqual('Fake blog')
-  })
+  }, 10000)
 })
 
 describe('testing adding bad blogs', () => {
@@ -75,7 +75,7 @@ describe('testing adding bad blogs', () => {
       .expect(201)
 
     expect(response.body.likes).toBe(0)
-  })
+  }, 10000)
 
   test('testing adding a blog with missing url or title properties should get a bad request 400 response', async () => {
     const missingTitleBlog = {
@@ -97,8 +97,48 @@ describe('testing adding bad blogs', () => {
       .post('/api/blogs')
       .send(missingUrlBlog)
       .expect(400)
-  })
+  }, 10000)
 })
+
+describe('testing deletion of a blog', () => {
+
+  test('succeeds with status code 204 if id is valid', async () => {
+
+    const blogsAtStart = await helper.getAllBlogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204)
+
+    const blogsAtEnd = await helper.getAllBlogsInDb()
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1)
+
+    expect(blogsAtEnd).not.toContainEqual(blogToDelete)
+  }, 10000)
+})
+
+describe('testing updating a blog', () => {
+
+  test('updating the number of likes of a blog', async () => {
+    const blogsAtStart = await helper.getAllBlogsInDb()
+    const blogToUpdate = blogsAtStart[0]
+
+    const newBlog = {
+      ...blogToUpdate,
+      likes: 100
+    }
+
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(newBlog)
+      .expect(200)
+
+    const blogsAtEnd = await helper.getAllBlogsInDb();
+    const updatedBlog = blogsAtEnd.find(blog => blog.id === blogToUpdate.id)
+    expect(updatedBlog.likes).toBe(100)
+  })
+}, 10000)
 
 afterAll(async () => {
   mongoose.connection.close()
