@@ -6,33 +6,24 @@ blogsRouter.get('/', async (request, response) => {
   response.json(blogs)
 })
 
-blogsRouter.get('/:id', (request, response) => {
-  Blog.findById(request.params.id)
-    .then(blog => {
-      if (blog) {
-        return response.json(blog)
-      } else {
-        response.status(404).end()
-      }
-    })
-    .catch(error => next(error))
+blogsRouter.get('/:id', async (request, response) => {
+  const blog = await Blog.findById(request.params.id)
+
+  if (blog) {
+    response.json(blog)
+  } else {
+    response.status(404).end()
+  }
 })
 
 blogsRouter.post('/', async (request, response) => {
   const body = request.body
 
-  if (body.title === undefined) {
-    return response.status(400).json({ message: 'missing title property' })
-  }
-  if (body.url === undefined) {
-    return response.status(400).json({ message: 'missing url property' })
-  }
-
   const blog = new Blog({
     title: body.title,
     author: body.author,
     url: body.url,
-    likes: body.likes || 0
+    likes: body.likes
   })
 
   const savedBlog = await blog.save()
